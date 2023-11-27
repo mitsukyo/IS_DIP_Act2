@@ -2,11 +2,18 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Drawing.Imaging;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using AForge.Video.DirectShow;
+using AForge.Video;
+
 
 namespace Abella_DIP_Act2
 {
@@ -14,6 +21,13 @@ namespace Abella_DIP_Act2
     public partial class Form1 : Form
     {
         Bitmap imageA, imageB, colorgreen, loaded, result;
+        String path;
+        private bool isCamera = false;
+        private bool isRunning = false;
+        private bool isFiltered = false;
+        private FilterInfoCollection devices;
+        private VideoCaptureDevice video;
+
         public Form1()
         {
             InitializeComponent();
@@ -201,6 +215,11 @@ namespace Abella_DIP_Act2
             pictureBox3.Image = result;
         }
 
+        private void onToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void loadBg_Click(object sender, EventArgs e)
         {
             openFileDialog2.ShowDialog();
@@ -232,7 +251,19 @@ namespace Abella_DIP_Act2
 
         private void Form1_Load(object sender, EventArgs e)
         {
+           
+        }
 
+        
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            StartCameraView();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            StopCameraView();
         }
 
         private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
@@ -240,5 +271,49 @@ namespace Abella_DIP_Act2
             imageB = new Bitmap(openFileDialog1.FileName);
             pictureBox1.Image = imageB;
         }
+
+        private void videoNewFrame(object sender, NewFrameEventArgs eventArgs)
+        {
+            Image cameraFrame = (Image)eventArgs.Frame.Clone();
+
+            pictureBox1.Invoke((MethodInvoker)delegate
+            {
+                pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+                pictureBox1.Image = cameraFrame;
+                if (!isFiltered)
+                {
+                    pictureBox3.SizeMode = PictureBoxSizeMode.Zoom;
+                    pictureBox3.Image = cameraFrame;
+                }
+            });
+
+        }
+        private void StartCameraView()
+        {
+            devices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+
+            if (devices.Count > 0)
+            {
+                video = new VideoCaptureDevice(devices[0].MonikerString);
+                video.NewFrame += videoNewFrame;
+                video.Start();
+                isRunning = true;
+            }
+            else
+            {
+                MessageBox.Show("No video devices found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void StopCameraView()
+        {
+
+            video.SignalToStop();
+            video.WaitForStop();
+            isRunning = false;
+
+        }
+
+        
     }
 }
