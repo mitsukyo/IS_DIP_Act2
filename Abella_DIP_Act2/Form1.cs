@@ -27,10 +27,15 @@ namespace Abella_DIP_Act2
         private bool isFiltered = false;
         private FilterInfoCollection devices;
         private VideoCaptureDevice video;
+        Device camDevice;
+        DeviceManager devicemanager;
 
         public Form1()
         {
             InitializeComponent();
+            devicemanager = new DeviceManager();
+            camDevice = new Device();
+            this.DoubleBuffered = true;
         }
 
         private void loadButton_Click(object sender, EventArgs e)
@@ -217,8 +222,19 @@ namespace Abella_DIP_Act2
 
         private void onToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Device[] devices = DeviceManager.GetAllDevices();
 
+            if (devices.Length > 0)
+            {
+                camDevice = devices[0]; // Assuming you want to use the first detected device
+                camDevice.ShowWindow(pictureBox1);
+            }
+            else
+            {
+                MessageBox.Show("No webcam devices found.");
+            }
         }
+
 
         private void loadBg_Click(object sender, EventArgs e)
         {
@@ -266,6 +282,11 @@ namespace Abella_DIP_Act2
             StopCameraView();
         }
 
+        private void offToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
         {
             imageB = new Bitmap(openFileDialog1.FileName);
@@ -290,18 +311,16 @@ namespace Abella_DIP_Act2
         }
         private void StartCameraView()
         {
-            devices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            Device[] devices = DeviceManager.GetAllDevices();
 
-            if (devices.Count > 0)
+            if (devices.Length > 0)
             {
-                video = new VideoCaptureDevice(devices[0].MonikerString);
-                video.NewFrame += videoNewFrame;
-                video.Start();
-                isRunning = true;
+                camDevice = devices[0]; // Assuming you want to use the first detected device
+                camDevice.ShowWindow(pictureBox1);
             }
             else
             {
-                MessageBox.Show("No video devices found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("No webcam devices found.");
             }
         }
 
@@ -314,6 +333,10 @@ namespace Abella_DIP_Act2
 
         }
 
-        
+        private void Open_Camera(object sender, EventArgs e)
+        {
+            camDevice.ShowWindow(pictureBox1);
+        }
+
     }
 }

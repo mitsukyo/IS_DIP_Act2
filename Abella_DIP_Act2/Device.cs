@@ -121,6 +121,5 @@ namespace Abella_DIP_Act2
         {
             SendMessage(deviceHandle, WM_CAP_EDIT_COPY, 0, 0);
         }
-
     }
 }
